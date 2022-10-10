@@ -1,13 +1,18 @@
+// DECLARE CANVAS VARIABLES
 const canvas = document.querySelector("canvas");
 const c = canvas.getContext("2d");
 
 canvas.width = 1024;
 canvas.height = 576;
 
-c.fillRect(0, 0, canvas.width, canvas.height);
-
 const gravity = 0.7;
 
+// CLASS DECLARATIONS - sprite is for the player, floor the room, and doors the doors.
+class Map {
+    constructor(){
+        this.currentLocation = new Floor({color:"blue", [new Door({})]});
+    }
+}
 class Sprite {
     constructor({ position, velocity }) {
         this.position = position;
@@ -43,9 +48,35 @@ class Sprite {
 }
 
 class Floor {
-    constructor({ color }) {
+    constructor({ color, doors }) {
         // will eventually become a sprite of some kind?
         this.color = color
+        this.doors = doors || []
+    }
+    createDoor(position, nextRoom, prevRoom) {
+        const newDoor = new Door({room: this, position, nextRoom, prevRoom })
+        this.doors.push(newDoor)
+    }
+
+    draw(){
+        for (let i = 0; i < this.doors.length; i++) {
+            this.doors[i].draw()
+        }
+    }
+
+    handleDoors() {
+        for (let door of this.doors){
+            console.log(door, player)
+            if(player.width + player.position.x >= door.position.x 
+                && player.position.x <= door.position.x + door.width
+                && player.position.y + player.height >= door.position.y
+                && player.position.y <= door.position.y + door.height
+                ) {
+                    door.travel()
+                    return true;
+                }
+        }
+        return false;
     }
 }
 
@@ -54,7 +85,7 @@ class Door {
         // doors will act as linked lists. means we might have to flip doors on interactions?
         this.room = room;
         this.position = position;
-        this.nextRoom = nextRoom || null;
+        this.nextRoom = new Floor({color: "yellow"}) || null;
         this.prevRoom = prevRoom || null;
         this.width = 100;
         this.height = 150;
@@ -64,7 +95,7 @@ class Door {
     travel() {
         let temp = this.room;
         this.room = this.nextRoom;
-        this.nextRoom = new Floor({color: "red"});
+        testRoom = this.nextRoom;
         this.prevRoom = temp;
     }
 
@@ -74,6 +105,7 @@ class Door {
     }
 }
 
+// CLASSES INSTANTIATED ==> SHOULD CREATE EXTRA ROOMS AS WELL!
 const player = new Sprite({
     position: {
         x: 0,
@@ -85,14 +117,12 @@ const player = new Sprite({
     }
 });
 
-const testRoom = new Floor({color: "red"});
-const testDoor = new Door({
-    room: testRoom, 
-    position: {
-        x: 450,
-        y: canvas.height - 150,
-    }
-});
+let testRoom = new Floor({color: "red"});
+
+testRoom.createDoor({
+    x: 450,
+    y: canvas.height - 150,
+})
 
 const keys = {
     w: {
@@ -111,10 +141,10 @@ const keys = {
 
 function animate() {
     window.requestAnimationFrame(animate);
-    c.fillStyle = testDoor.room.color;
-    c.fillRect(0, 0, canvas.height, canvas.width);
+    c.fillStyle = testRoom.color;
+    c.fillRect(0, 0, canvas.width, canvas.height);
 
-    testDoor.draw();
+    testRoom.draw();
     player.update();
 
     if(Math.floor(player.position.y + player.height) === canvas.height) {
@@ -147,6 +177,10 @@ window.addEventListener("keydown", (e) => {
         case "w":
             player.jump()
             break;
+        case "Enter":
+            if(testRoom.handleDoors()){
+                console.log("door found")
+            }
     }
 })
 
