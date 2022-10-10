@@ -42,6 +42,38 @@ class Sprite {
     }
 }
 
+class Floor {
+    constructor({ color }) {
+        // will eventually become a sprite of some kind?
+        this.color = color
+    }
+}
+
+class Door {
+    constructor({ room, position, nextRoom, prevRoom }) {
+        // doors will act as linked lists. means we might have to flip doors on interactions?
+        this.room = room;
+        this.position = position;
+        this.nextRoom = nextRoom || null;
+        this.prevRoom = prevRoom || null;
+        this.width = 100;
+        this.height = 150;
+        this.color = "yellow";
+    }
+
+    travel() {
+        let temp = this.room;
+        this.room = this.nextRoom;
+        this.nextRoom = new Floor({color: "red"});
+        this.prevRoom = temp;
+    }
+
+    draw() {
+        c.fillStyle = this.color;
+        c.fillRect(this.position.x, this.position.y, this.width, this.height);
+    }
+}
+
 const player = new Sprite({
     position: {
         x: 0,
@@ -50,6 +82,15 @@ const player = new Sprite({
     velocity: {
         x: 0,
         y: 0
+    }
+});
+
+const testRoom = new Floor({color: "red"});
+const testDoor = new Door({
+    room: testRoom, 
+    position: {
+        x: 450,
+        y: canvas.height - 150,
     }
 });
 
@@ -70,8 +111,10 @@ const keys = {
 
 function animate() {
     window.requestAnimationFrame(animate);
-    c.fillStyle = "black";
+    c.fillStyle = testDoor.room.color;
     c.fillRect(0, 0, canvas.height, canvas.width);
+
+    testDoor.draw();
     player.update();
 
     if(Math.floor(player.position.y + player.height) === canvas.height) {
