@@ -8,9 +8,21 @@ canvas.height = 576;
 const gravity = 0.7;
 
 // CLASS DECLARATIONS - sprite is for the player, floor the room, and doors the doors.
-class Map {
-    constructor(){
-        this.currentLocation = new Floor({color:"blue", [new Door({})]});
+class GameMap {
+    constructor(next){
+        this.currentLocation = new Floor({color:"blue"});
+        // this.prev = prev || null;
+        this.next = next || null;
+    }
+    insert(){
+        let temp = this.currentLocation;
+        this.currentLocation = this.next;
+        this.prev = temp;
+    }
+    addLocations(locations) {
+        for(let i = 0; i < locations.length; i++){
+            this.insert(location[i]);
+        }
     }
 }
 class Sprite {
@@ -66,7 +78,6 @@ class Floor {
 
     handleDoors() {
         for (let door of this.doors){
-            console.log(door, player)
             if(player.width + player.position.x >= door.position.x 
                 && player.position.x <= door.position.x + door.width
                 && player.position.y + player.height >= door.position.y
@@ -85,7 +96,7 @@ class Door {
         // doors will act as linked lists. means we might have to flip doors on interactions?
         this.room = room;
         this.position = position;
-        this.nextRoom = new Floor({color: "yellow"}) || null;
+        this.nextRoom = nextRoom || null;
         this.prevRoom = prevRoom || null;
         this.width = 100;
         this.height = 150;
@@ -116,13 +127,22 @@ const player = new Sprite({
         y: 0
     }
 });
+// the overall map. this object works as a linked list and retains the order 
+let map = new GameMap()
 
 let testRoom = new Floor({color: "red"});
-
+let testRoom2 = new Floor({color: "blue"})
 testRoom.createDoor({
     x: 450,
     y: canvas.height - 150,
-})
+}, testRoom2)
+testRoom2.createDoor({
+    x: 300,
+    y: canvas.height - 150
+}, testRoom)
+
+
+
 
 const keys = {
     w: {
